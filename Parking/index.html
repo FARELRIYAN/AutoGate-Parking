@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID Parking System Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        /* Header */
+        header {
+            background-color: #4f9fff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            background-color: #f0f8ff;
+            padding-top: 20px;
+            transition: 0.3s;
+        }
+
+        .sidebar a {
+            padding: 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #333;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #ddd;
+        }
+
+        .sidebar .profile-section {
+            padding: 10px;
+            background-color: #e6f7ff;
+            margin-bottom: 15px;
+        }
+
+        .profile-section img {
+            width: 60px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .profile-section h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .profile-section p {
+            font-size: 14px;
+            color: #777;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+            margin-top: 60px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #4f9fff;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            left: 0;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            margin: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4f9fff;
+            color: white;
+        }
+
+        /* Time display */
+        .time-display {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .status-allowed {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-blocked {
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Switch Style */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 25px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 25px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 21px;
+            width: 21px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(25px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Section -->
+    <header>
+        RFID Parking System Dashboard
+    </header>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="index.html">Dashboard</a>
+        <a href="register.php">Register Card</a>
+        <!-- <a href="get_logs.php">View Logs</a>
+        <a href="settings.php">Settings</a> -->
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Real-time Clock -->
+        <div class="time-display" id="time">
+            <!-- Real-time clock will be shown here -->
+        </div>
+
+        <!-- Table of Users -->
+        <h2>Card Holders</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>UID</th>
+                    <th>Plat Nomor</th>
+                    <th>Nama</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="cardData">
+                <!-- Data will be inserted here dynamically via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        RFID Parking System © 2024
+    </footer>
+
+    <script>
+        // Real-time clock function
+        function updateTime() {
+            const timeDisplay = document.getElementById('time');
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            timeDisplay.textContent = `Current Time: ${hours}:${minutes}:${seconds}`;
+        }
+
+        setInterval(updateTime, 1000); // Update clock every second
+        updateTime(); // Initial call to display the time immediately
+
+        // Fetch user data (from PHP or API)
+        function fetchUserData() {
+            fetch('get_logs.php')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('cardData');
+                    tableBody.innerHTML = ''; // Clear existing rows
+
+                    data.forEach(user => {
+                        const statusLabel = user.status === 'allowed' ? 'Diizinkan' : 'Diblokir';
+                        const statusToggle = user.status === 'allowed' ? 'checked' : '';
+
+                        const row = `<tr>
+                                        <td>${user.uid}</td>
+                                        <td>${user.plat_nomor}</td>
+                                        <td>${user.username}</td>
+                                        
+                                        <td>
+                                            <label class="switch">
+                                                <input type="checkbox" ${statusToggle} 
+                                                       onchange="toggleStatus(${user.id}, this.checked)">
+                                                <span class="slider"></span>
+                                            </label>
+                                            <span>${statusLabel}</span>
+                                        </td>
+                                    </tr>`;
+                        tableBody.innerHTML += row;
+                    });
+                })
+                .catch(error => console.error('Error fetching user data:', error));
+        }
+
+        // Toggle status function
+        function toggleStatus(userId, isAllowed) {
+            const status = isAllowed ? 'allowed' : 'blocked';
+
+            // Send AJAX request to update the status in the database
+            fetch('update_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: userId, status: status })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Status berhasil diperbarui.');
+                        fetchUserData(); // Refresh the table to reflect the new status
+                    } else {
+                        alert('Gagal memperbarui status.');
+                    }
+                })
+                .catch(error => console.error('Error updating status:', error));
+        }
+
+        fetchUserData(); // Initial fetch
+        setInterval(fetchUserData, 5000); // Fetch user data every 5 seconds
+    </script>
+
+</body>
+
+</html>
